@@ -4,11 +4,19 @@ const User = require('./../../db/models/user');
 const bcrypt = require('bcryptjs');
 const { getMe } = require('./auth');
 const { protect } = require('../../middleware/authMiddleware');
+const Importmodel = require('../../db/models/import');
+const url = require('url');
+
+const getImports = async (req, res) => {
+    const importedData = await Importmodel.find();
+    res.status(201).send({ status: true, data: importedData });
+};
+
 
 router.post('/signup', async (req, res) => {
 
     try {
-        const { email, password } = req.body;
+        const { fname, email, phone, password } = req.body;
         const isUserexists = await User.findOne({ email });
         if (isUserexists) {
             res.status(201).send({ message: "User with this email already exists." });
@@ -17,7 +25,7 @@ router.post('/signup', async (req, res) => {
 
         const genSalt = await bcrypt.genSalt(10);
         const hashedPass = await bcrypt.hash(password.toString(), genSalt);
-        const formData = { email, password: hashedPass };
+        const formData = { fname, email, phone, password: hashedPass };
         const signupUser = new User(formData);
         const registered = await signupUser.save();
         res.status(201).send({ message: "User Created Successfully", data: registered });
@@ -61,8 +69,12 @@ router.post('/login', async (req, res) => {
 router.get('/me', protect, getMe)
 
 router.post('/import', protect, async (req, res) => {
+    const formData = req.body;
+    formData.forEach(val => val.user_id = req.user._id.toString());
+    const importedRec = await Importmodel.insertMany(formData);
+    res.status(201).send({ message: 'Records Imported Successfully', data: importedRec });
+});
 
-    res.status(201).send(req.body);
-})
+router.get('/import', protect, getImports);
 
 module.exports = router;

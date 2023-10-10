@@ -12,10 +12,12 @@ authRoutes.post('/', (req, res) => {
 
 
 const getMe = (req, res) => {
-    const { _id, email } = req.user;
+    const { _id, email,fname,phone } = req.user;
     return res.json({
         id: _id,
-        email
+        email,
+        fname,
+        phone
     });
 }
 
