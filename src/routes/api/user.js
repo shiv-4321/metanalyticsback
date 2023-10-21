@@ -70,8 +70,8 @@ router.get('/me', protect, getMe)
 
 router.post('/import', protect, async (req, res) => {
     const formData = req.body;
-    formData.forEach(val => val.user_id = req.user._id.toString());
-    const importedRec = await Importmodel.insertMany(formData);
+    const importData = formData.map(val => { return { ...val, user_id: req.user._id.toString() } })
+    const importedRec = await Importmodel.insertMany(importData);
     res.status(201).send({ message: 'Records Imported Successfully', data: importedRec });
 });
 
